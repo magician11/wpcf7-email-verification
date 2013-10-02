@@ -3,7 +3,4 @@ wpcf7-email-verification
 
 Extends Contact Form 7 to allow for email addresses to be verified.
 
-Logic:
-1) user submits a Contact Form 7 form
-2) that user gets sent an email with a link asking them to confirm their address
-3) once clicked, that form gets submitted as per usual
+This is done by not sending the form, but first getting the user to click on a link sent to his email address to verify ownership of the email entered. Once done, the form contents gets sent through.

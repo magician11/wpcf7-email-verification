@@ -28,17 +28,56 @@
 
 add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
 
+// debug function that emails me human-readable information about a variable
 function wpcf7ev_debug( $message ) {
-    echo '<pre>';
-    var_dump($message);
-    echo '</pre>';
+    wp_mail( 'support@andrewgolightly.com', 'Debug code', print_r($message, true));
+}
+
+/* get the tags from the senders field in Contact Form 7 and return the actual
+post_data for those tags
+*/
+function wpcf7ev_get_senders_email_address($wpcf7_form)
+{
+    wpcf7ev_debug("Getting email address to verify...");
+    $tagName = "your-name";
+    wpcf7ev_debug($wpcf7_form->posted_data[$tagName]);
+    
+    $senderTags = $wpcf7_form->mail['sender'];
+    
+    // replace <> with posted_data
+    
+    $sendersEmailAddress = preg_replace_callback('/\[(.+?)\]/',
+                                                function ($matches)
+                                                {
+                                                    //wpcf7ev_debug($wpcf7_form->posted_data);
+                                                    $currentTag = $wpcf7_form->posted_data[$tagName];
+                                                    wpcf7ev_debug($currentTag);
+                                                    //return 
+                                                    //wpcf7ev_debug($matches);
+                                                    return "bob";
+                                                },
+                                                $senderTags
+                                               );
+                                               
+    //$sendersEmailAddress = preg_replace('/\[(.+?)\]/', "bob", $senderTags);
+    
+    wpcf7ev_debug("Senders email address: " . $sendersEmailAddress);
 }
 
 function wpcf7ev_verify_email_address( &$wpcf7_form )
 {
-    //wpcf7ev_debug( "Entering the verify email address function" );
-    wp_mail( 'support@andrewgolightly.com', 'The subject', 'The message' + print_r($wpcf7_form) );
+    // get the email address it's being sent from
+    /* 
+        todo: I wonder if there is a way to not hardcode in "your-email" as senders email address?
+        Something to do with parsing $wpcf7_form->mail['sender']; ??
+    */
+    //wpcf7ev_debug( "Need to verify the following email address " .  $submittersEmailAddress);
+    $submittersEmailAddress = wpcf7ev_get_senders_email_address($wpcf7_form);
+    
     // save submitted form to the database
+    
+    // get the email address it's being sent from
+    
     
     // send email to the submitter with a verification link to click on
     //$submittersEmail = $wpcf7_form->posted_data["your-email"];
