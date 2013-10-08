@@ -70,35 +70,32 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     $wpcf7_form->skip_mail = true;
 }
 
+// save the Contact Form 7 object for this submission as a serialized object
 function wpcf7ev_save_form_submission($wpcf7_form) {
-}
+    
+    global $wpdb;
+    
+    $wpdb->insert('wpcf7ev', array('wpcf7ev_class_object' => seralize($wpcf7_form) );
 
+}
 
 // add uninstall code
 //register_uninstall_hook()
 
 register_activation_hook( __FILE__, 'wpcf7ev_activation' );
 
+//setup table if it doesn't exist in our database
 function wpcf7ev_activation() {
-
-    // Get access to global database access class
-    global $wpdb;
     
-    // Prepare SQL query to create database table
-    // using function parameter
-    // todo: decide what should be written to the database.. probably the whole object as a string
     $creation_query =
         'CREATE TABLE IF NOT EXISTS wpcf7ev (
         `wpcf7ev_id` int(20) NOT NULL AUTO_INCREMENT,
-        `bug_description` text, 
-        `bug_version` varchar(10) DEFAULT NULL,
-        `bug_report_date` date DEFAULT NULL,
-        `bug_status` int(3) NOT NULL DEFAULT 0,
-        PRIMARY KEY (`bug_id`)
+        `wpcf7ev_class_object` text, 
+        PRIMARY KEY (`wpcf7ev_id`)
     );';
+    
     global $wpdb;
     $wpdb->query( $creation_query );
 }
-
 
 ?>
