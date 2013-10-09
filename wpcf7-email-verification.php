@@ -32,13 +32,19 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
 {
     // get the email address it's being sent from
     $submittersEmailAddress = wpcf7ev_get_senders_email_address($wpcf7_form);
-    wpcf7ev_debug("Need to verify " . $submittersEmailAddress);
+    wp_mail('support@andrewgolightly.com', 'Form notice', 'Hi Andrew,
+    We have had a form submission from' . $submittersEmailAddress . '. We are waiting for them to confirm their email address');
     
-    // save submitted form to the database
-    wpcf7ev_save_form_submission($wpcf7_form);
+    //create hash code
+    $random_hash = substr(md5(uniqid(rand(), true)), -16, 16);
+    
+    // save submitted form as a transient object
+//    wpcf7ev_debug($wpcf7_form);
+    wpcf7ev_save_form_submission(array($wpcf7_form, $random_hash));
     
     // send email to the submitter with a verification link to click on
-    wp_mail($submittersEmailAddress , 'Verify your email address', 'Please verify your email address by clicking http://test.com');
+    wp_mail($submittersEmailAddress , 'Verify your email address', "Please verify your email address by clicking " . 
+            get_site_url() . "/?email-verification-key={$random_hash}");
     
     // prevent the form being sent as per usual
     $wpcf7_form->skip_mail = true;
@@ -73,10 +79,37 @@ function wpcf7ev_get_senders_email_address($wpcf7_form)
 
 
 // save the Contact Form 7 object as transient data (lifespan = 4 hours). The object is automatically serialized.
-function wpcf7ev_save_form_submission($wpcf7_form) {
+function wpcf7ev_save_form_submission($dataToSave) {
 
     //todo: create a unique slug    
-    $result = set_transient( 'test_slug', $wpcf7_form , 4 * HOUR_IN_SECONDS );
+    $result = set_transient( 'test_slug', $dataToSave , 4 * HOUR_IN_SECONDS );
+  //  wpcf7ev_debug("Result of attempting to store array data of size " . count($dataToSave) . " is: {$result}");
+    //wpcf7ev_debug($dataToSave);
+}
+
+add_action( 'template_redirect', 'check_for_verifier' );
+
+function check_for_verifier() {
+    
+    if(isset($_GET['email-verification-key']))
+    {
+        $verification_key = $_GET['email-verification-key'];
+    
+        if(!empty($verification_key))
+        {
+            if(false === ($storedValue = get_transient('test_slug')))
+            {
+                wpcf7ev_debug("Could not find stored value.");
+            }
+            else
+            {
+                if($storedValue[1] == $verification_key)
+                {
+                    wpcf7ev_debug("We have a match!!");
+                }
+            }
+        }
+    }
 }
 
 ?>
