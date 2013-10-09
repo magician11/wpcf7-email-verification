@@ -28,6 +28,22 @@
 
 add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
 
+function wpcf7ev_verify_email_address( &$wpcf7_form )
+{
+    // get the email address it's being sent from
+    $submittersEmailAddress = wpcf7ev_get_senders_email_address($wpcf7_form);
+    wpcf7ev_debug("Need to verify " . $submittersEmailAddress);
+    
+    // save submitted form to the database
+    wpcf7ev_save_form_submission($wpcf7_form);
+    
+    // send email to the submitter with a verification link to click on
+    wp_mail($submittersEmailAddress , 'Verify your email address', 'Please verify your email address by clicking http://test.com');
+    
+    // prevent the form being sent as per usual
+    $wpcf7_form->skip_mail = true;
+}
+
 // debug function that emails me human-readable information about a variable
 function wpcf7ev_debug( $message ) {
     wp_mail( 'support@andrewgolightly.com', 'Debug code', print_r($message, true));
@@ -41,7 +57,7 @@ function wpcf7ev_debug( $message ) {
 */
 function wpcf7ev_get_senders_email_address($wpcf7_form)
 {    
-    // grab sender info    
+    // grab sender's tags
     $senderTags = $wpcf7_form->mail['sender'];
     
     // replace tag names with posted_data using regex
@@ -54,48 +70,13 @@ function wpcf7ev_get_senders_email_address($wpcf7_form)
                                  );
 }
 
-function wpcf7ev_verify_email_address( &$wpcf7_form )
-{
-    // get the email address it's being sent from
-    $submittersEmailAddress = wpcf7ev_get_senders_email_address($wpcf7_form);
-    wpcf7ev_debug("Need to verify " . $submittersEmailAddress);
-    
-    // save submitted form to the database
-    wpcf7ev_save_form_submission($wpcf7_form);
-    
-    // send email to the submitter with a verification link to click on
-    wp_mail($submittersEmailAddress , 'Debug code', "Thanks for your message.");
-    
-    // prevent the form being sent as per usual
-    $wpcf7_form->skip_mail = true;
-}
 
-// save the Contact Form 7 object for this submission as a serialized object
+
+// save the Contact Form 7 object as transient data (lifespan = 4 hours). The object is automatically serialized.
 function wpcf7ev_save_form_submission($wpcf7_form) {
-    
-    global $wpdb;
-    
-    $wpdb->insert('wpcf7ev', array('wpcf7ev_class_object' => seralize($wpcf7_form) );
 
-}
-
-// add uninstall code
-//register_uninstall_hook()
-
-register_activation_hook( __FILE__, 'wpcf7ev_activation' );
-
-//setup table if it doesn't exist in our database
-function wpcf7ev_activation() {
-    
-    $creation_query =
-        'CREATE TABLE IF NOT EXISTS wpcf7ev (
-        `wpcf7ev_id` int(20) NOT NULL AUTO_INCREMENT,
-        `wpcf7ev_class_object` text, 
-        PRIMARY KEY (`wpcf7ev_id`)
-    );';
-    
-    global $wpdb;
-    $wpdb->query( $creation_query );
+    //todo: create a unique slug    
+    $result = set_transient( 'test_slug', $wpcf7_form , 4 * HOUR_IN_SECONDS );
 }
 
 ?>
