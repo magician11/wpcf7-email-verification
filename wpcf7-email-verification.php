@@ -40,7 +40,7 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     
     // save submitted form as a transient object
 //    wpcf7ev_debug($wpcf7_form);
-    wpcf7ev_save_form_submission(array($wpcf7_form, $random_hash));
+    wpcf7ev_save_form_submission($wpcf7_form, $random_hash);
     
     // send email to the submitter with a verification link to click on
     wp_mail($submittersEmailAddress , 'Verify your email address', "Please verify your email address by clicking " . 
@@ -79,12 +79,16 @@ function wpcf7ev_get_senders_email_address($wpcf7_form)
 
 
 // save the Contact Form 7 object as transient data (lifespan = 4 hours). The object is automatically serialized.
-function wpcf7ev_save_form_submission($dataToSave) {
+function wpcf7ev_save_form_submission($form_data, $random_hash) {
 
-    //todo: create a unique slug    
-    $result = set_transient( 'test_slug', $dataToSave , 4 * HOUR_IN_SECONDS );
-  //  wpcf7ev_debug("Result of attempting to store array data of size " . count($dataToSave) . " is: {$result}");
-    //wpcf7ev_debug($dataToSave);
+    $data_to_save = array($form_data, $random_hash);
+    
+    $result = set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , 4 * HOUR_IN_SECONDS );
+}
+
+function wpcf7ev_get_slug($random_hash) {
+ 
+    return 'wpcf7ev_' . $random_hash;
 }
 
 add_action( 'template_redirect', 'check_for_verifier' );
@@ -97,7 +101,7 @@ function check_for_verifier() {
     
         if(!empty($verification_key))
         {
-            if(false === ($storedValue = get_transient('test_slug')))
+            if(false === ($storedValue = get_transient(wpcf7ev_get_slug($verification_key))))
             {
                 wpcf7ev_debug("Could not find stored value.");
             }
