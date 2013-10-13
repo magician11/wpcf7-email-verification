@@ -78,7 +78,7 @@ function wpcf7ev_get_senders_email_address($wpcf7_form)
 
 
 
-// save the Contact Form 7 object as transient data (lifespan = 4 hours). The object is automatically serialized.
+// save the Contact Form 7 obje$ct as transient data (lifespan = 4 hours). The object is automatically serialized.
 function wpcf7ev_save_form_submission($form_data, $random_hash) {
 
     $data_to_save = array($form_data, $random_hash);
@@ -110,6 +110,8 @@ function check_for_verifier() {
                 if($storedValue[1] == $verification_key)
                 {
                     wpcf7ev_debug("We have a match!!");
+                    
+                    //todo: send out the normal email given the CF7 object
                 }
             }
         }
