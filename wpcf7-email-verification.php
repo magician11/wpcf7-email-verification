@@ -33,7 +33,7 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     // get the email address it's being sent from
     $submittersEmailAddress = wpcf7ev_get_senders_email_address($wpcf7_form);
     wp_mail('support@andrewgolightly.com', 'Form notice', 'Hi Andrew,
-    We have had a form submission from' . $submittersEmailAddress . '. We are waiting for them to confirm their email address');
+    We have had a form submission from ' . $submittersEmailAddress . '. We are waiting for them to confirm their email address.');
     
     //create hash code
     $random_hash = substr(md5(uniqid(rand(), true)), -16, 16);
@@ -103,7 +103,9 @@ function check_for_verifier() {
     
         if(!empty($verification_key))
         {
-            if(false === ($storedValue = get_transient(wpcf7ev_get_slug($verification_key))))
+            $slug = wpcf7ev_get_slug($verification_key);
+            
+            if(false === ($storedValue = get_transient($slug)))
             {
                 wpcf7ev_debug("Could not find stored value.");
             }
@@ -116,7 +118,9 @@ function check_for_verifier() {
                 if ( $cf7->mail_2['active'] )
                     $cf7->compose_mail( $cf7->setup_mail_template( $cf7->mail_2, 'mail_2' ) );
                 
-                //todo: remove the transient object once the email has been sent
+                // Delete the transient to make sure the emails can't be resent if that verification link
+                // is clicked on again.
+                delete_transient($slug);
             }
         }
     }
