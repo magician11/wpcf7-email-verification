@@ -112,6 +112,8 @@ function check_for_verifier() {
                     wpcf7ev_debug("We have a match!!");
                     
                     //todo: send out the normal email given the CF7 object
+                    $cf7 = $storedValue[0];
+                    $cf7->compose_mail( $cf7->setup_mail_template( $cf7->mail, 'mail' ) );
                 }
             }
         }
