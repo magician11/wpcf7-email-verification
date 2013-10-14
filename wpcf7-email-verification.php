@@ -39,7 +39,6 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     $random_hash = substr(md5(uniqid(rand(), true)), -16, 16);
     
     // save submitted form as a transient object
-//    wpcf7ev_debug($wpcf7_form);
     wpcf7ev_save_form_submission($wpcf7_form, $random_hash);
     
     // send email to the submitter with a verification link to click on
@@ -91,8 +90,11 @@ function wpcf7ev_get_slug($random_hash) {
     return 'wpcf7ev_' . $random_hash;
 }
 
+
 add_action( 'template_redirect', 'check_for_verifier' );
 
+// When a user clicks that verification link, this function will be called.
+// If that key is found, the emails get sent out as per usual.
 function check_for_verifier() {
     
     if(isset($_GET['email-verification-key']))
@@ -107,14 +109,14 @@ function check_for_verifier() {
             }
             else
             {
-                if($storedValue[1] == $verification_key)
-                {
-                    wpcf7ev_debug("We have a match!!");
+                wpcf7ev_debug("We have a match!!");
+                $cf7 = $storedValue[0];
+                $cf7->compose_mail( $cf7->setup_mail_template( $cf7->mail, 'mail' ) );
                     
-                    //todo: send out the normal email given the CF7 object
-                    $cf7 = $storedValue[0];
-                    $cf7->compose_mail( $cf7->setup_mail_template( $cf7->mail, 'mail' ) );
-                }
+                if ( $cf7->mail_2['active'] )
+                    $cf7->compose_mail( $cf7->setup_mail_template( $cf7->mail_2, 'mail_2' ) );
+                
+                //todo: remove the transient object once the email has been sent
             }
         }
     }
