@@ -3,8 +3,8 @@
 /**
  * Plugin Name: Contact Form 7 email verification
  * Plugin URI: http://andrewgolightly.com/contact-form-7-email-verification/
- * Description: Extends Contact Form 7 to allow for email addresses to be verified by getting a user to click on a link that is sent to their email address.
- * Version: 0.1
+ * Description: Extends Contact Form 7 to allow for email addresses to be verified. On a form submission 1) the sender will get emailed a link to click on 2) the form submission will not be sent, but instead will be saved for later. On verification, the form gets sent as per usual for CF7.
+ * Version: 0.11
  * Author: Andrew Golightly
  * Author URI: http://andrewgolightly.com
  * License: GPL2
@@ -26,75 +26,67 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/**
+ * Intercept forms being sent by first verifying the senders email address.
+ */
+
 add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
 
 function wpcf7ev_verify_email_address( &$wpcf7_form )
 {
-    // get the email address it's being sent from
-    $submittersEmailAddress = wpcf7ev_get_senders_email_address($wpcf7_form);
-    wp_mail('support@andrewgolightly.com', 'Form notice', 'Hi Andrew,
-    We have had a form submission from ' . $submittersEmailAddress . '. We are waiting for them to confirm their email address.');
+    // Grab the mail template (re-using the code from CF7)
+    $mail_template = $wpcf7_form->setup_mail_template( $wpcf7_form->mail, 'mail' );
+    // get the sender's email address
+    $senders_email_address = $wpcf7_form->replace_mail_tags( $mail_template['sender'] );
+    // (optional) send an email to the recipient to let them know verification is pending
+    wp_mail($wpcf7_form->replace_mail_tags( $mail_template['recipient'] ), 'Form notice',
+            'Hi, You have had a form submission from ' . $senders_email_address .
+            '. We are waiting for them to confirm their email address.');
     
-    //create hash code
+    //create hash code for verification key
     $random_hash = substr(md5(uniqid(rand(), true)), -16, 16);
     
     // save submitted form as a transient object
     wpcf7ev_save_form_submission($wpcf7_form, $random_hash);
     
-    // send email to the submitter with a verification link to click on
-    wp_mail($submittersEmailAddress , 'Verify your email address', "Please verify your email address by clicking " . 
+    // send email to the sender with a verification link to click on
+    wp_mail($senders_email_address , 'Verify your email address',
+            'Hi, For your recent submission to be submitted, please click on the following link: ' . 
             get_site_url() . "/?email-verification-key={$random_hash}");
     
     // prevent the form being sent as per usual
     $wpcf7_form->skip_mail = true;
 }
 
-// debug function that emails me human-readable information about a variable
-function wpcf7ev_debug( $message ) {
-    wp_mail( 'support@andrewgolightly.com', 'Debug code', print_r($message, true));
-}
+/**
+ * Save the Contact Form 7 object as transient data (lifespan = 4 hours).
+ * The saved object is automatically serialized.
+ */
 
-/*
-    get the tags from the senders field in Contact Form 7 and return the actual
-    post_data for those tags
-    
-    e.g. "[your-name] <[your-email]>" --> "Harry <harry@potter.com>"
-*/
-function wpcf7ev_get_senders_email_address($wpcf7_form)
-{    
-    // grab sender's tags
-    $senderTags = $wpcf7_form->mail['sender'];
-    
-    // replace tag names with posted_data using regex
-    return $sendersEmailAddress = preg_replace_callback('/\[(.+?)\]/',
-                                 function ($matches) use ($wpcf7_form)
-                                 {
-                                     return $wpcf7_form->posted_data[$matches[1]];
-                                 },
-                                 $senderTags
-                                 );
-}
+function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
 
-
-
-// save the Contact Form 7 obje$ct as transient data (lifespan = 4 hours). The object is automatically serialized.
-function wpcf7ev_save_form_submission($form_data, $random_hash) {
-
-    $data_to_save = array($form_data, $random_hash);
+    $data_to_save = array($cf7_object, $random_hash);
     
     $result = set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , 4 * HOUR_IN_SECONDS );
 }
+
+/**
+ * Create the slug key for the transient CF7 object
+ */
 
 function wpcf7ev_get_slug($random_hash) {
  
     return 'wpcf7ev_' . $random_hash;
 }
 
+/**
+ * On a page load, check if the query string has the email verification key.
+ * If a key exists in the query string and it is found in the database,
+ * the saved CF7 object gets sent out as per usual.
+ */
 
 add_action( 'template_redirect', 'check_for_verifier' );
 
-// When a user clicks that verification link, this function will be called.
-// If that key is found, the emails get sent out as per usual.
 function check_for_verifier() {
     
     if(isset($_GET['email-verification-key']))
@@ -107,7 +99,9 @@ function check_for_verifier() {
             
             if(false === ($storedValue = get_transient($slug)))
             {
-                wpcf7ev_debug("Could not find stored value.");
+                wp_mail(get_settings('admin_email'), 'Could not find verification key' ,
+                       'Someone clicked on a verification link for a form submission and the '.
+                       'corresponding key and transient CF7 object could not be found.');
             }
             else
             {
@@ -117,8 +111,8 @@ function check_for_verifier() {
                 $cf7->skip_mail = false; // allow mail to be sent as per usual
                 $cf7->mail(); // send mail using the CF7 core code
                         
-                // Delete the transient to make sure the emails can't be re-sent if that verification link
-                // is clicked on again.
+                // Delete the transient to make sure the email(s) can't be 
+                // re-sent if that verification link is clicked on again.
                 delete_transient($slug);
             }
         }

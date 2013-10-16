@@ -3,6 +3,10 @@ wpcf7-email-verification
 
 Extends Contact Form 7 to allow for email addresses to be verified.
 
-This is done by not sending the form's content immediately as per usual, but first getting the user to click on a link sent to his email address to verify ownership of the email entered. Once done, the submission gets sent through.
+When this plugin is activated, on a form submission..
 
-NOTE: This plugin is not ready for use; it's not fully functional and under constant development.
+1) The form submission does not get sent but instead saved temporarily.
+2) The sender gets sent an email address with a link to click to confirm their email address.
+2) Once the link is clicked, the form gets sent as per usual for CF7 functionality.
+
+-- developer: Andrew Golightly (support@andrewgolightly.com)
