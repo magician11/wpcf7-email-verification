@@ -111,13 +111,12 @@ function check_for_verifier() {
             }
             else
             {
-                wpcf7ev_debug("We have a match!!");
-                $cf7 = $storedValue[0];
-                $cf7->compose_mail( $cf7->setup_mail_template( $cf7->mail, 'mail' ) );
-                    
-                if ( $cf7->mail_2['active'] )
-                    $cf7->compose_mail( $cf7->setup_mail_template( $cf7->mail_2, 'mail_2' ) );
-                
+                //wpcf7ev_debug("We have a match!!");
+                remove_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
+                $cf7 = $storedValue[0]; // get the saved CF7 object
+                $cf7->skip_mail = false; // allow mail to be sent as per usual
+                $cf7->mail(); // send mail usign the CF7 core code
+                        
                 // Delete the transient to make sure the emails can't be resent if that verification link
                 // is clicked on again.
                 delete_transient($slug);
