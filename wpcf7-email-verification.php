@@ -2,8 +2,8 @@
 
 /**
  * Plugin Name: Contact Form 7 email verification
- * Plugin URI: http://andrewgolightly.com/contact-form-7-email-verification/
- * Description: Extends Contact Form 7 to allow for email addresses to be verified. On a form submission 1) the sender will get emailed a link to click on 2) the form submission will not be sent, but instead will be saved for later. On verification, the form gets sent as per usual for CF7.
+ * Plugin URI: http://andrewgolightly.com/code/contact-form-7-email-verification/
+ * Description: Extends Contact Form 7 (CF7) to allow for email addresses to be verified. On a form submission the form's content will not be sent, but instead will be saved for later. The sender will get emailed a link to click on to verify their email address. Once that link is clicked the form gets sent as per usual for CF7.
  * Version: 0.11
  * Author: Andrew Golightly
  * Author URI: http://andrewgolightly.com
@@ -27,7 +27,7 @@
 */
 
 /**
- * Intercept forms being sent by first verifying the senders email address.
+ * Intercept Contact Form 7 forms being sent by first verifying the senders email address.
  */
 
 add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
@@ -50,6 +50,7 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     wpcf7ev_save_form_submission($wpcf7_form, $random_hash);
     
     // send email to the sender with a verification link to click on
+    // todo: where to send the user on verifying their email address?
     wp_mail($senders_email_address , 'Verify your email address',
             'Hi, For your recent submission to be submitted, please click on the following link: ' . 
             get_site_url() . "/?email-verification-key={$random_hash}");
