@@ -40,8 +40,8 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     $senders_email_address = $wpcf7_form->replace_mail_tags( $mail_template['sender'] );
     // (optional) send an email to the recipient to let them know verification is pending
     wp_mail($wpcf7_form->replace_mail_tags( $mail_template['recipient'] ), 'Form notice',
-            'Hi, You have had a form submission from ' . $senders_email_address .
-            '. We are waiting for them to confirm their email address.');
+            "Hi,\n\nYou've had a form submission on " . get_option('blogname') . " from " . $senders_email_address .
+            ".\n\nWe are waiting for them to confirm their email address.");
     
     //create hash code for verification key
     $random_hash = substr(md5(uniqid(rand(), true)), -16, 16);
@@ -52,8 +52,9 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     // send email to the sender with a verification link to click on
     // todo: where to send the user on verifying their email address?
     wp_mail($senders_email_address , 'Verify your email address',
-            'Hi, For your recent submission to be submitted, please click on the following link: ' . 
-            get_site_url() . "/?email-verification-key={$random_hash}");
+            "Hi,\n\nThanks for your your recent submission on " . get_option('blogname') .
+            ".\n\nIn order for your submission to be processed, please verify this is your email address by clicking on the following link: " . 
+            get_site_url() . "/?email-verification-key={$random_hash}" . "\n\nThanks.");
     
     // prevent the form being sent as per usual
     $wpcf7_form->skip_mail = true;
