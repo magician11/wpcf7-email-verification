@@ -2,11 +2,11 @@
 
 /**
  * Plugin Name: Contact Form 7 email verification
- * Plugin URI: http://andrewgolightly.com/code/contact-form-7-email-verification/
+ * Plugin URI: http://golightlyplus.com/code/contact-form-7-email-verification/
  * Description: Extends Contact Form 7 (CF7) to allow for email addresses to be verified. On a form submission the form's content will not be sent, but instead will be saved for later. The sender will get emailed a link to click on to verify their email address. Once that link is clicked the form gets sent as per usual for CF7.
- * Version: 0.11
+ * Version: 0.22
  * Author: Andrew Golightly
- * Author URI: http://andrewgolightly.com
+ * Author URI: http://www.golightlyplus.com
  * License: GPL2
  */
 
@@ -54,7 +54,7 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     wp_mail($senders_email_address , 'Verify your email address',
             "Hi,\n\nThanks for your your recent submission on " . get_option('blogname') .
             ".\n\nIn order for your submission to be processed, please verify this is your email address by clicking on the following link: " . 
-            get_site_url() . "/?email-verification-key={$random_hash}" . "\n\nThanks.");
+            get_site_url() . "/wp-admin/admin-post.php?action=wpcf7ev&email-verification-key={$random_hash}" . "\n\nThanks.");
     
     // prevent the form being sent as per usual
     $wpcf7_form->skip_mail = true;
@@ -66,7 +66,7 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
  */
 
 function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
-
+    
     $data_to_save = array($cf7_object, $random_hash);
     
     $result = set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , 4 * HOUR_IN_SECONDS );
@@ -77,33 +77,37 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
  */
 
 function wpcf7ev_get_slug($random_hash) {
- 
+    
     return 'wpcf7ev_' . $random_hash;
 }
 
 /**
- * On a page load, check if the query string has the email verification key.
+ * Process the verification key.
  * If a key exists in the query string and it is found in the database,
  * the saved CF7 object gets sent out as per usual.
  */
 
-add_action( 'template_redirect', 'check_for_verifier' );
+//this next action version allows users not logged in to submit requests
+add_action( 'admin_post_wpcf7ev', 'wpcf7ev_check_verifier' );
+add_action( 'admin_post_nopriv_wpcf7ev', 'wpcf7ev_check_verifier' );
 
-function check_for_verifier() {
+// check the verification key
+function wpcf7ev_check_verifier() {
     
     if(isset($_GET['email-verification-key']))
     {
         $verification_key = $_GET['email-verification-key'];
-    
+        
         if(!empty($verification_key))
         {
             $slug = wpcf7ev_get_slug($verification_key);
             
+            // if the stored data is not found, send out an error message
             if(false === ($storedValue = get_transient($slug)))
             {
                 wp_mail(get_settings('admin_email'), 'Could not find verification key' ,
-                       'Someone clicked on a verification link for a form submission and the '.
-                       'corresponding key and transient CF7 object could not be found.');
+                        'Someone clicked on a verification link for a form submission and the '.
+                        'corresponding key and transient CF7 object could not be found.');
             }
             else
             {
@@ -112,11 +116,10 @@ function check_for_verifier() {
                 $cf7 = $storedValue[0]; // get the saved CF7 object
                 $cf7->skip_mail = false; // allow mail to be sent as per usual
                 $cf7->mail(); // send mail using the CF7 core code
-                        
-                // Delete the transient to make sure the email(s) can't be 
-                // re-sent if that verification link is clicked on again.
-                delete_transient($slug);
             }
+            
+            status_header(200);
+            die("Verification key processed.");
         }
     }
 }
