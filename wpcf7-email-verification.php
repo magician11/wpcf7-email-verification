@@ -87,13 +87,17 @@ function wpcf7ev_get_slug($random_hash) {
  * the saved CF7 object gets sent out as per usual.
  */
 
-//this next action version allows users not logged in to submit requests
+// creating custom handlers for my own custom GET requests.
 add_action( 'admin_post_wpcf7ev', 'wpcf7ev_check_verifier' );
 add_action( 'admin_post_nopriv_wpcf7ev', 'wpcf7ev_check_verifier' );
 
 // check the verification key
 function wpcf7ev_check_verifier() {
     
+    // output the header of the theme being used
+    status_header(200);
+    get_header();
+        
     if(isset($_GET['email-verification-key']))
     {
         $verification_key = $_GET['email-verification-key'];
@@ -108,6 +112,11 @@ function wpcf7ev_check_verifier() {
                 wp_mail(get_settings('admin_email'), 'Could not find verification key' ,
                         'Someone clicked on a verification link for a form submission and the '.
                         'corresponding key and transient CF7 object could not be found.');
+                echo('<h2>Sorry, looks like your form submission is no longer accessible.</h2>' . 
+                     '<ul>' . 
+                     '<li>Did you take more than a couple of hours to click the verification link? If so, please re-submit the form.</li>' . 
+                     '<li>Not sure what\'s wrong? Please contact us.</li>' . 
+                     '</ul>');
             }
             else
             {
@@ -116,12 +125,13 @@ function wpcf7ev_check_verifier() {
                 $cf7 = $storedValue[0]; // get the saved CF7 object
                 $cf7->skip_mail = false; // allow mail to be sent as per usual
                 $cf7->mail(); // send mail using the CF7 core code
+                echo('<h2>Thank you. Verification key accepted.</h2>' . 
+                     '<p>Your form submission will now be processed.</p>');
             }
-            
-            status_header(200);
-            die("Verification key processed.");
         }
     }
+    
+    get_footer();
 }
 
 ?>
