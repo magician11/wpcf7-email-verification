@@ -97,7 +97,7 @@ function wpcf7ev_check_verifier() {
     // output the header of the theme being used
     status_header(200);
     get_header();
-        
+    
     if(isset($_GET['email-verification-key']))
     {
         $verification_key = $_GET['email-verification-key'];
@@ -125,8 +125,11 @@ function wpcf7ev_check_verifier() {
                 $cf7 = $storedValue[0]; // get the saved CF7 object
                 $cf7->skip_mail = false; // allow mail to be sent as per usual
                 $cf7->mail(); // send mail using the CF7 core code
+                // display a confirmation message then redirect back to the homepage after 8 seconds
                 echo('<h2>Thank you. Verification key accepted.</h2>' . 
-                     '<p>Your form submission will now be processed.</p>');
+                     '<p>Your form submission will now be processed.</p>' . 
+                     '<p>If you are not redirected back to the homepage in 8 seconds, <a href="' . get_site_url() . '">click here</a>.</p>' .
+                     '<script> setTimeout(function () { window.location.href = "' . get_site_url() . '"; }, 8000); </script>');
             }
         }
     }
