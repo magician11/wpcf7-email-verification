@@ -59,12 +59,22 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     $wpcf7_form->skip_mail = true;
 }
 
+// debug function that emails me human-readable information about a variable
+function wpcf7ev_debug( $message ) {
+    wp_mail( 'support@andrewgolightly.com', 'Debug code', print_r($message, true));
+}
+
 /**
  * Save the Contact Form 7 object as transient data (lifespan = 4 hours).
  * The saved object is automatically serialized.
  */
 
 function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
+    
+    // if there are attachemnts, save them
+    if(!empty($cf7_object->uploaded_files)) {
+        wpcf7ev_debug("Saving files: " . implode(", ", $cf7_object->uploaded_files));
+    }
     
     $data_to_save = array($cf7_object, $random_hash);
     
