@@ -50,7 +50,6 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     wpcf7ev_save_form_submission($wpcf7_form, $random_hash);
     
     // send email to the sender with a verification link to click on
-    // todo: where to send the user on verifying their email address?
     wp_mail($senders_email_address , 'Verify your email address',
             "Hi,\n\nThanks for your your recent submission on " . get_option('blogname') .
             ".\n\nIn order for your submission to be processed, please verify this is your email address by clicking on the following link: " . 
@@ -69,7 +68,7 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
     
     $data_to_save = array($cf7_object, $random_hash);
     
-    $result = set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , 4 * HOUR_IN_SECONDS );
+    set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , 4 * HOUR_IN_SECONDS );
 }
 
 /**
