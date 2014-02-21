@@ -73,8 +73,20 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
     
     // if there are attachemnts, save them
     if(!empty($cf7_object->uploaded_files)) {
-        wpcf7ev_debug("Saving files: " . implode(", ", $cf7_object->uploaded_files));
+        
+        //wpcf7ev_debug("Saving files: " . implode(", ", $cf7_object->uploaded_files));
+        
+        // move files to a temp folder
+        $wpcf7ev_uploads_dir = ABSPATH . 'wp-content/uploads/wpcf7ev_files';
+        //wpcf7ev_debug("Going to move files to $wpcf7ev_uploads_dir");
+        foreach ($cf7_object->uploaded_files as $uploaded_file_path) {
+            $file_move_success = move_uploaded_file($uploaded_file_path, "$wpcf7ev_uploads_dir/" . basename($uploaded_file_path));
+            wpcf7ev_debug("Tried to move $uploaded_file_path to $wpcf7ev_uploads_dir/" . basename($uploaded_file_path) );
+            //wpcf7ev_debug("The result was $file_move_success");
+        }
     }
+    
+    //die();
     
     $data_to_save = array($cf7_object, $random_hash);
     
