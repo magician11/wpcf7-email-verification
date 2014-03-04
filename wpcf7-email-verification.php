@@ -127,7 +127,7 @@ function wpcf7ev_check_verifier() {
                 // display a confirmation message then redirect back to the homepage after 8 seconds
                 echo('<h2>Thank you. Verification key accepted.</h2>' . 
                      '<p>Your form submission will now be processed.</p>' . 
-                     '<p>If you are not redirected back to the homepage in 8 seconds, <a href="' . get_site_url() . '">click here</a>.</p>' .
+                     '<p>If you are not redirected back to the homepage in 8 seconds <button href="' . get_site_url() . '">click here</button></p>' .
                      '<script> setTimeout(function () { window.location.href = "' . get_site_url() . '"; }, 8000); </script>');
             }
         }
