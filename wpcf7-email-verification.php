@@ -38,23 +38,23 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     $mail_template = $wpcf7_form->setup_mail_template( $wpcf7_form->mail, 'mail' );
     // get the sender's email address
     $senders_email_address = $wpcf7_form->replace_mail_tags( $mail_template['sender'] );
-    // (optional) send an email to the recipient to let them know verification is pending
+    // send an email to the recipient to let them know verification is pending
     wp_mail($wpcf7_form->replace_mail_tags( $mail_template['recipient'] ), 'Form notice',
             "Hi,\n\nYou've had a form submission on " . get_option('blogname') . " from " . $senders_email_address .
             ".\n\nWe are waiting for them to confirm their email address.");
-    
+
     //create hash code for verification key
     $random_hash = substr(md5(uniqid(rand(), true)), -16, 16);
-    
+
     // save submitted form as a transient object
     wpcf7ev_save_form_submission($wpcf7_form, $random_hash);
-    
+
     // send email to the sender with a verification link to click on
     wp_mail($senders_email_address , 'Verify your email address',
             "Hi,\n\nThanks for your your recent submission on " . get_option('blogname') .
             ".\n\nIn order for your submission to be processed, please verify this is your email address by clicking on the following link: " . 
             get_site_url() . "/wp-admin/admin-post.php?action=wpcf7ev&email-verification-key={$random_hash}" . "\n\nThanks.");
-    
+
     // prevent the form being sent as per usual
     $wpcf7_form->skip_mail = true;
 }
@@ -70,21 +70,27 @@ function wpcf7ev_debug( $message ) {
  */
 
 function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
-        
+
     // if there are attachemnts, save them
     if(!empty($cf7_object->uploaded_files)) {
-            
-        // move the attachments to a temp folder
-        $wpcf7ev_uploads_dir = ABSPATH . 'wp-content/uploads/wpcf7ev_files';
-        
+
+        // temp directory for attachments
+        define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files');
+
+        //if the wpcf7ev directory does not exist, create it
+        if (!is_dir(WPCF7EV_UPLOADS_DIR)) {
+            mkdir(WPCF7EV_UPLOADS_DIR, 0733, true);
+        }
+
+        // move the attachments to wpcf7ev temp folder
         foreach ($cf7_object->uploaded_files as $uploaded_file_path) {
-            $file_move_success = rename($uploaded_file_path, "$wpcf7ev_uploads_dir/" . basename($uploaded_file_path));
+            rename($uploaded_file_path, WPCF7EV_UPLOADS_DIR . '/' . basename($uploaded_file_path));
         }
     }
-    
+
     $data_to_save = array($cf7_object, $random_hash);
-    
-    set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , 4 * HOUR_IN_SECONDS );
+
+    set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , 16 * HOUR_IN_SECONDS );
 }
 
 /**
@@ -92,7 +98,7 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
  */
 
 function wpcf7ev_get_slug($random_hash) {
-    
+
     return 'wpcf7ev_' . $random_hash;
 }
 
@@ -108,19 +114,19 @@ add_action( 'admin_post_nopriv_wpcf7ev', 'wpcf7ev_check_verifier' );
 
 // check the verification key
 function wpcf7ev_check_verifier() {
-    
+
     // output the header of the theme being used
     status_header(200);
     get_header();
-    
+
     if(isset($_GET['email-verification-key']))
     {
         $verification_key = $_GET['email-verification-key'];
-        
+
         if(!empty($verification_key))
         {
             $slug = wpcf7ev_get_slug($verification_key);
-            
+
             // if the stored data is not found, send out an error message
             if(false === ($storedValue = get_transient($slug)))
             {
@@ -148,7 +154,7 @@ function wpcf7ev_check_verifier() {
             }
         }
     }
-    
+
     get_footer();
 }
 
