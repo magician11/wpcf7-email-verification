@@ -52,7 +52,7 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     // send email to the sender with a verification link to click on
     wp_mail($senders_email_address , 'Verify your email address',
             "Hi,\n\nThanks for your your recent submission on " . get_option('blogname') .
-            ".\n\nIn order for your submission to be processed, please verify this is your email address by clicking on the following link: " . 
+            ".\n\nIn order for your submission to be processed, please verify this is your email address by clicking on the following link:\n\n" . 
             get_site_url() . "/wp-admin/admin-post.php?action=wpcf7ev&email-verification-key={$random_hash}" . "\n\nThanks.");
 
     // prevent the form being sent as per usual
@@ -65,14 +65,17 @@ function wpcf7ev_debug( $message ) {
 }
 
 /**
- * Save the Contact Form 7 object as transient data (lifespan = 4 hours).
+ * Save the Contact Form 7 object as transient data.
  * The saved object is automatically serialized.
  */
 
 function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
 
+    // make a copy of the cf7 object so that it keeps a reference to the original filepaths
+    $cf7ev_object = clone $cf7_object;
+
     // if there are attachemnts, save them
-    if(!empty($cf7_object->uploaded_files)) {
+    if(!empty($cf7ev_object->uploaded_files)) {
 
         // temp directory for attachments
         define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files');
@@ -83,12 +86,18 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
         }
 
         // move the attachments to wpcf7ev temp folder
-        foreach ($cf7_object->uploaded_files as $uploaded_file_path) {
-            rename($uploaded_file_path, WPCF7EV_UPLOADS_DIR . '/' . basename($uploaded_file_path));
+        $updated_filepaths = array();
+        foreach ($cf7ev_object->uploaded_files as $key => $uploaded_file_path) {
+            $new_filepath = WPCF7EV_UPLOADS_DIR . '/' . basename($uploaded_file_path);
+            rename($uploaded_file_path, $new_filepath);
+            $updated_filepaths[$key] = $new_filepath;
         }
+
+        // update the cloned cf7 object with the new filepaths of the attachments
+        $cf7ev_object->uploaded_files = $updated_filepaths;
     }
 
-    $data_to_save = array($cf7_object, $random_hash);
+    $data_to_save = array($cf7ev_object, $random_hash);
 
     set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , 16 * HOUR_IN_SECONDS );
 }
