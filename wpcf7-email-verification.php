@@ -131,21 +131,19 @@ function wpcf7ev_check_verifier() {
     {
         $verification_key = $_GET['email-verification-key'];
 
-        if(!empty($verification_key)) // is this check neccessary?
+        if(!empty($verification_key))
         {
             $slug = wpcf7ev_get_slug($verification_key);
 
             // if the stored data is not found, send out an error message
             if(false === ($storedValue = get_transient($slug)))
             {
-                wp_mail(get_settings('admin_email'), 'Could not find verification key' ,
-                        'Someone clicked on a verification link for a form submission and the '.
-                        'corresponding key and transient CF7 object could not be found.');
-                echo('<h2>Sorry, looks like your form submission is no longer accessible.</h2>' . 
-                     '<ul>' . 
-                     '<li>Did you take more than a couple of hours to click the verification link? If so, please re-submit the form.</li>' . 
-                     '<li>Not sure what\'s wrong? Please contact us.</li>' . 
-                     '</ul>');
+                wp_mail(get_settings('admin_email'), 'Something went wrong' ,
+                        'Someone attempted to verify a link for a form submission and the '.
+                        "corresponding key and transient CF7 object could not be found.\n\n".
+                        "The verification key used was: {$verification_key}");
+                echo('<h2>Whoops! Something went wrong.</h2>' . 
+                     "<ul><li>Did you make sure you clicked on the link and not copy-and-pasted it incorrectly?</li><li>Otherwise it's most likely you took more than a few hours to click the verification link?</li></ul><p>No problem, please submit your form again.</p>");
             }
             else
             {
