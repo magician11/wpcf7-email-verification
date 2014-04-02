@@ -65,11 +65,6 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     $wpcf7_form->skip_mail = true;
 }
 
-// debug function that emails me human-readable information about a variable
-function wpcf7ev_debug( $message ) {
-    wp_mail( 'support@andrewgolightly.com', 'Debug code', print_r($message, true));
-}
-
 /**
  * Save the Contact Form 7 object as transient data.
  * The saved object is automatically serialized.
@@ -83,8 +78,6 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
     // if there are attachemnts, save them
     if(!empty($cf7ev_object->uploaded_files)) {
 
-
-
         //if the wpcf7ev directory does not exist, create it
         if (!is_dir(WPCF7EV_UPLOADS_DIR)) {
             mkdir(WPCF7EV_UPLOADS_DIR, 0733, true);
@@ -93,7 +86,8 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
         // move the attachments to wpcf7ev temp folder
         $updated_filepaths = array();
         foreach ($cf7ev_object->uploaded_files as $key => $uploaded_file_path) {
-            $new_filepath = WPCF7EV_UPLOADS_DIR . basename($uploaded_file_path);
+            // make sure the file name is unique in the directory it's being saved to
+            $new_filepath = WPCF7EV_UPLOADS_DIR . wp_unique_filename( WPCF7EV_UPLOADS_DIR, basename($uploaded_file_path) );
             rename($uploaded_file_path, $new_filepath);
             $updated_filepaths[$key] = $new_filepath;
         }
