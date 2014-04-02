@@ -3,7 +3,7 @@ Contributors: magician11, bcworkz
 Donate link: http://golightlyplus.com/code/
 Tags: email, 
 Requires at least: 3.6.1
-Tested up to: 3.8
+Tested up to: 3.8.1
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -14,14 +14,12 @@ Extends Contact Form 7 to allow for email addresses to be verified.
 
 This "Contact Form 7 email verification" plugin extends the "Contact Form 7" plugin to automatically verify email addresses for all form submissions.
 
-Once this plugin is activated, on a form submission..
+After this plugin is activated, on a form submission..
 
-1. The form submission does not get sent but instead saved temporarily.
+1. The form submission does not get sent but instead saved temporarily (including attachments).
 2. The sender gets sent an email address with a link to click to confirm their email address.
 3. Once the link is clicked, the user gets sent back to the website with the form on, and
 4. the previously submitted form gets sent as per usual for CF7 functionality.
-
-This functionality is particularly useful for legalese reasons, by verifying a person's identity (the ownership of their email address). This plugin was created as I wanted to verify that the form on my terms and conditions page was being filled out by the actual person.
 
 For those interested, you can check out the code on GitHub [here](https://github.com/magician11/wpcf7-email-verification "WP CF7 email verification code on GitHub").
 
@@ -29,7 +27,7 @@ For those interested, you can check out the code on GitHub [here](https://github
 
 There are things to still be done..
 
-1. Attachments are not saved. i.e. This verification plugin currently does not support attachments for CF7 forms
+1. Create a settings page to customise messages
 
 == Installation ==
 
@@ -52,6 +50,9 @@ Awesome! As above, just [get in touch](http://golightlyplus.com/contact-andrew/ 
 Nothing to show here.
 
 == Changelog ==
+
+= 0.38 =
+* Added support for attachments
 
 = 0.22 =
 * Fixed bug on double calling the plugin
