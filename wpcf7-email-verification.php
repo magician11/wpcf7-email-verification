@@ -3,14 +3,14 @@
 /**
  * Plugin Name: Contact Form 7 email verification
  * Plugin URI: http://golightlyplus.com/code/contact-form-7-email-verification/
- * Description: Extends Contact Form 7 (CF7) to allow for email addresses to be verified. On a form submission the form's content will not be sent, but instead will be saved for later. The sender will get emailed a link to click on to verify their email address. Once that link is clicked the form gets sent as per usual for CF7.
- * Version: 0.22
+ * Description: Extends Contact Form 7 to allow for email addresses to be verified via a link sent to the sender's email address. There is currently no settings page for this plugin.
+ * Version: 0.38
  * Author: Andrew Golightly
  * Author URI: http://www.golightlyplus.com
  * License: GPL2
  */
 
-/*  Copyright 2013  Andrew Golightly  (email : support@andrewgolightly.com)
+/*  Copyright 2013  Andrew Golightly  (email : andrew@golightlyplus.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as 
@@ -25,6 +25,12 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+/**
+ * Globals
+ */
+
+define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files/');
+define('WPCF7EV_STORAGE_TIME', 16 * HOUR_IN_SECONDS);
 
 /**
  * Intercept Contact Form 7 forms being sent by first verifying the senders email address.
@@ -77,8 +83,7 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
     // if there are attachemnts, save them
     if(!empty($cf7ev_object->uploaded_files)) {
 
-        // temp directory for attachments
-        define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files');
+
 
         //if the wpcf7ev directory does not exist, create it
         if (!is_dir(WPCF7EV_UPLOADS_DIR)) {
@@ -88,7 +93,7 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
         // move the attachments to wpcf7ev temp folder
         $updated_filepaths = array();
         foreach ($cf7ev_object->uploaded_files as $key => $uploaded_file_path) {
-            $new_filepath = WPCF7EV_UPLOADS_DIR . '/' . basename($uploaded_file_path);
+            $new_filepath = WPCF7EV_UPLOADS_DIR . basename($uploaded_file_path);
             rename($uploaded_file_path, $new_filepath);
             $updated_filepaths[$key] = $new_filepath;
         }
@@ -99,7 +104,7 @@ function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
 
     $data_to_save = array($cf7ev_object, $random_hash);
 
-    set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , 16 * HOUR_IN_SECONDS );
+    set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , WPCF7EV_STORAGE_TIME );
 }
 
 /**
@@ -112,9 +117,9 @@ function wpcf7ev_get_slug($random_hash) {
 }
 
 /**
- * Process the verification key.
- * If a key exists in the query string and it is found in the database,
- * the saved CF7 object gets sent out as per usual.
+ * Process the clicked link sent to the sender's email address.
+ * If the verification key exists in the query string and it is found in the database,
+ * the saved form submission gets sent out as per usual.
  */
 
 // creating custom handlers for my own custom GET requests.
@@ -132,7 +137,7 @@ function wpcf7ev_check_verifier() {
     {
         $verification_key = $_GET['email-verification-key'];
 
-        if(!empty($verification_key))
+        if(!empty($verification_key)) // is this check neccessary?
         {
             $slug = wpcf7ev_get_slug($verification_key);
 
@@ -165,6 +170,32 @@ function wpcf7ev_check_verifier() {
     }
 
     get_footer();
+}
+
+/**
+ * Clean up any attachments that are older than the transient storage time.
+ */
+
+add_action( 'init', 'wpcf7ev_cleanup_attachments' );
+
+function wpcf7ev_cleanup_attachments() {
+
+    if ( $handle = @opendir( WPCF7EV_UPLOADS_DIR ) ) {
+
+        while ( ( $file = readdir( $handle ) ) !== false ) {
+
+            // if the current file is any of these, skip it
+            if ( $file == "." || $file == ".." || $file == ".htaccess" )
+                continue;
+
+            $file_info = stat( WPCF7EV_UPLOADS_DIR . $file );
+            if ( $file_info['mtime'] + WPCF7EV_STORAGE_TIME < time() ) {
+                @unlink( WPCF7EV_UPLOADS_DIR . $file );
+            }
+        }
+
+        closedir( $handle );
+    }
 }
 
 ?>
