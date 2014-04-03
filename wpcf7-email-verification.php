@@ -25,12 +25,85 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 /**
  * Globals
  */
 
 define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files/');
 define('WPCF7EV_STORAGE_TIME', 16 * HOUR_IN_SECONDS);
+
+/**
+ * Add menu option to WP Dashboard->Settings for this plugin.
+ */
+
+// add hook to setup options page under WPCF7
+add_action('admin_menu', 'wpcf7ev_menu');
+
+function wpcf7ev_menu() {
+    add_submenu_page('wpcf7', 'Contact Form 7 email verification', 'Email verification', 'manage_options', 
+                     'wpcf7ev', 'wpcf7ev_settings_page');
+}
+
+/* Render the contents of the WPCF7ev settings page */
+function wpcf7ev_settings_page() {
+
+    // Check that the user is allowed to update options
+    if (!current_user_can('manage_options')) {
+        wp_die('You do not have sufficient permissions to access this page.');
+    }
+
+?>
+<div class="wrap">
+    <h2>Contact Form 7 email verification settings</h2>
+    <p>This page allows you to easily change a few of the more common settings in this plugin.</p>
+    <h3>Customising the emails</h3>
+    <p>Everytime someone fills in the form, they get sent an email. You can specify here who the email is sent from.</p>
+
+    <form method="post" action="options.php">
+
+        <?php settings_fields( 'wpcf7ev-settings-group' ); ?>
+
+        <?php do_settings_sections( 'wpcf7ev-settings-group' ); ?>
+
+        <table class="form-table">
+
+            <tr valign="top">
+
+                <th scope="row">Sender's name</th>
+
+                <td><input type="text" name="wpcf7ev_from_name" value="<?php echo get_option('wpcf7ev_from_name'); ?>" /></td>
+
+            </tr>
+
+            <tr valign="top">
+
+                <th scope="row">Sender's email address</th>
+
+                <td><input type="text" name="wpcf7ev_from_email" value="<?php echo get_option('wpcf7ev_from_email'); ?>" /></td>
+
+            </tr>
+
+        </table>
+
+        <?php submit_button(); ?>
+
+    </form>
+
+</div>
+
+<?php
+}
+
+
+//call register settings function
+add_action( 'admin_init', 'register_wpcf7ev_settings' );
+
+function register_wpcf7ev_settings() {
+
+    register_setting( 'wpcf7ev-settings-group', 'wpcf7ev_from_name' );
+    register_setting( 'wpcf7ev-settings-group', 'wpcf7ev_from_email' );
+}
 
 /**
  * Intercept Contact Form 7 forms being sent by first verifying the senders email address.
