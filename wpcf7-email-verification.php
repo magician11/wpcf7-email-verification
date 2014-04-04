@@ -101,8 +101,22 @@ add_action( 'admin_init', 'register_wpcf7ev_settings' );
 
 function register_wpcf7ev_settings() {
 
-    register_setting( 'wpcf7ev-settings-group', 'wpcf7ev_from_name' );
-    register_setting( 'wpcf7ev-settings-group', 'wpcf7ev_from_email' );
+    add_settings_section('wpcf7ev_customising_emails_section', 'Customising the emails', 'wpcf7ev_customising_emails_section_callback', 'general');
+    
+    add_settings_field('wpcf7ev_from_name', "Sender's name", 'wpcf7ev_from_name_callback', 'general', 'wpcf7ev_customising_emails_section');
+
+    // register_setting( 'wpcf7ev_settings_options', 'wpcf7ev_from_name' );
+    // register_setting( 'wpcf7ev_settings_options', 'wpcf7ev_from_email' );
+}
+
+function wpcf7ev_customising_emails_section_callback() {
+    echo '<p>Everytime someone fills in the form, they get sent an email. You can specify here who the email is sent from.</p>';
+}
+
+function wpcf7ev_from_name_callback() {
+
+ //   $options = get_option('plugin_options');
+	echo "<input id='wpcf7ev_from_name' name='wpcf7ev_from_name' size='40' type='text' value='" . get_option('wpcf7ev_from_name') . "'/>";
 }
 
 /**
@@ -127,6 +141,9 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
 
     // save submitted form as a transient object
     wpcf7ev_save_form_submission($wpcf7_form, $random_hash);
+
+    // get the settings for this plugin
+    // $wpcf7ev_settings = get_option('wpcf7ev_settings_options', $
 
     // send email to the sender with a verification link to click on
     wp_mail($senders_email_address , 'Verify your email address',
