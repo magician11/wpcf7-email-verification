@@ -168,7 +168,7 @@ function wpcf7ev_check_verifier() {
  * Clean up any attachments that are older than the transient storage time.
  */
 
-add_action( 'init', 'wpcf7ev_cleanup_attachments' );
+add_action( 'wpcf7_mail_sent', 'wpcf7ev_cleanup_attachments' );
 
 function wpcf7ev_cleanup_attachments() {
 
