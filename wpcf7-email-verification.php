@@ -26,66 +26,39 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/**
+/* ------------------------------------------------------------------------ *
  * Globals
- */
+ * ------------------------------------------------------------------------ */
 
 define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files/');
 define('WPCF7EV_STORAGE_TIME', 16 * HOUR_IN_SECONDS);
 
-/**
- * Add menu option to WP Dashboard->Settings for this plugin.
- */
+// end setup of globals
 
-// add hook to setup options page under WPCF7
+/* ------------------------------------------------------------------------ *
+ * Create the settings page in the WordPress Dashboard
+ * ------------------------------------------------------------------------ */
+
 add_action('admin_menu', 'wpcf7ev_menu');
 
 function wpcf7ev_menu() {
     add_submenu_page('wpcf7', 'Contact Form 7 email verification', 'Email verification', 'manage_options', 
-                     'wpcf7ev', 'wpcf7ev_settings_page');
+                     'wpcf7ev_settings', 'wpcf7ev_settings_page');
 }
 
-/* Render the contents of the WPCF7ev settings page */
 function wpcf7ev_settings_page() {
-
-    // Check that the user is allowed to update options
-    if (!current_user_can('manage_options')) {
-        wp_die('You do not have sufficient permissions to access this page.');
-    }
 
 ?>
 <div class="wrap">
+
     <h2>Contact Form 7 email verification settings</h2>
-    <p>This page allows you to easily change a few of the more common settings in this plugin.</p>
-    <h3>Customising the emails</h3>
-    <p>Everytime someone fills in the form, they get sent an email. You can specify here who the email is sent from.</p>
+
+    <?php settings_errors(); ?>
 
     <form method="post" action="options.php">
 
-        <?php settings_fields( 'wpcf7ev-settings-group' ); ?>
-
-        <?php do_settings_sections( 'wpcf7ev-settings-group' ); ?>
-
-        <table class="form-table">
-
-            <tr valign="top">
-
-                <th scope="row">Sender's name</th>
-
-                <td><input type="text" name="wpcf7ev_from_name" value="<?php echo get_option('wpcf7ev_from_name'); ?>" /></td>
-
-            </tr>
-
-            <tr valign="top">
-
-                <th scope="row">Sender's email address</th>
-
-                <td><input type="text" name="wpcf7ev_from_email" value="<?php echo get_option('wpcf7ev_from_email'); ?>" /></td>
-
-            </tr>
-
-        </table>
-
+        <?php settings_fields( 'wpcf7ev_email_settings' ); ?>
+        <?php do_settings_sections( 'wpcf7ev_email_settings' ); ?>
         <?php submit_button(); ?>
 
     </form>
@@ -93,24 +66,24 @@ function wpcf7ev_settings_page() {
 </div>
 
 <?php
-}
+                                 }
 
-
-// setup the options for this plugin to be displayed in the Dashboard
 add_action( 'admin_init', 'init_wpcf7ev_settings' );
 
 function init_wpcf7ev_settings() {
 
-    // create a section for moodifying the verfication email sent
-    add_settings_section('wpcf7ev_customising_emails_section', 'Customising the emails', 'wpcf7ev_customising_emails_section_callback', 'general');
-    
-    // add the fields that can be modified
-    add_settings_field('wpcf7ev_from_name', "Sender's name", 'wpcf7ev_from_name_callback', 'general', 'wpcf7ev_customising_emails_section');
-    add_settings_field('wpcf7ev_from_email', "Sender's email address", 'wpcf7ev_from_email_callback', 'general', 'wpcf7ev_customising_emails_section');
+    if( false == get_option( 'wpcf7ev_email_settings' ) ) {  
+        add_option( 'wpcf7ev_email_settings' );
+    }
 
-    // register those fields with WordPress so we can use them later in our code
-    register_setting( 'general', 'wpcf7ev_from_name' );
-    register_setting( 'general', 'wpcf7ev_from_email' );
+    // create a section for moodifying the verfication email sent
+    add_settings_section('wpcf7ev_customising_emails_section', 'Customising the emails', 'wpcf7ev_customising_emails_section_callback', 'wpcf7ev_email_settings');
+
+    // add the fields that can be modified
+    add_settings_field('wpcf7ev_from_name', "Sender's name", 'wpcf7ev_from_name_callback', 'wpcf7ev_email_settings', 'wpcf7ev_customising_emails_section');
+    add_settings_field('wpcf7ev_from_email', "Sender's email address", 'wpcf7ev_from_email_callback', 'wpcf7ev_email_settings', 'wpcf7ev_customising_emails_section');
+
+    register_setting('wpcf7ev_email_settings', 'wpcf7ev_email_settings');
 }
 
 // render the verification email header
@@ -120,17 +93,23 @@ function wpcf7ev_customising_emails_section_callback() {
 
 // render the verification from_name field
 function wpcf7ev_from_name_callback() {
-	echo "<input id='wpcf7ev_from_name' name='wpcf7ev_from_name' size='40' type='text' value='" . get_option('wpcf7ev_from_name') . "'/>";
+
+    $options = get_option('wpcf7ev_email_settings');
+    echo "<input id='wpcf7ev_from_name' name='wpcf7ev_email_settings[wpcf7ev_from_name]' size='40' type='text' value='" . $options['wpcf7ev_from_name'] . "'/>";
 }
 
 // render the verification from_email field
 function wpcf7ev_from_email_callback() {
-	echo "<input id='wpcf7ev_from_email' name='wpcf7ev_from_email' type='email' value='" . get_option('wpcf7ev_from_email') . "'/>";
+
+    $options = get_option('wpcf7ev_email_settings');
+    echo "<input id='wpcf7ev_from_email' name='wpcf7ev_email_settings[wpcf7ev_from_email]' type='email' value='" . $options['wpcf7ev_from_email'] . "'/>";
 }
 
-/**
- * Intercept Contact Form 7 forms being sent by first verifying the senders email address.
- */
+// end setup of settings page in WordPress Dashboard
+
+/* ------------------------------------------------------------------------ *
+ * Intercept CF7 forms to first verify the senders email address
+ * ------------------------------------------------------------------------ */
 
 add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
 
@@ -151,8 +130,18 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     // save submitted form as a transient object
     wpcf7ev_save_form_submission($wpcf7_form, $random_hash);
 
-    // get the settings for this plugin
-    // $wpcf7ev_settings = get_option('wpcf7ev_settings_options', $
+    // check for a custom entered from name or email address
+    add_filter( 'wp_mail_from', function($email_address){
+        
+        $options = get_option('wpcf7ev_email_settings');
+        return $options['wpcf7ev_from_email'];
+    });
+
+    add_filter( 'wp_mail_from_name', function($from_name){
+        
+        $options = get_option('wpcf7ev_email_settings');
+        return $options['wpcf7ev_from_name'];
+    });
 
     // send email to the sender with a verification link to click on
     wp_mail($senders_email_address , 'Verify your email address',
