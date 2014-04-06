@@ -168,10 +168,11 @@ function wpcf7ev_check_verifier() {
  * Clean up any attachments that are older than the transient storage time.
  */
 
+// this hook gets called everytime a form submission is made (verified or not)
 add_action( 'wpcf7_mail_sent', 'wpcf7ev_cleanup_attachments' );
 
 function wpcf7ev_cleanup_attachments() {
-
+    
     if ( $handle = @opendir( WPCF7EV_UPLOADS_DIR ) ) {
 
         while ( ( $file = readdir( $handle ) ) !== false ) {
