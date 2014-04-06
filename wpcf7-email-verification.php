@@ -4,7 +4,7 @@
  * Plugin Name: Contact Form 7 email verification
  * Plugin URI: http://golightlyplus.com/code/contact-form-7-email-verification/
  * Description: Extends Contact Form 7 to allow for email addresses to be verified via a link sent to the sender's email address. There is currently no settings page for this plugin.
- * Version: 0.38
+ * Version: 0.44
  * Author: Andrew Golightly
  * Author URI: http://www.golightlyplus.com
  * License: GPL2

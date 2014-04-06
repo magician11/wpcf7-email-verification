@@ -51,6 +51,9 @@ Nothing to show here.
 
 == Changelog ==
 
+= 0.44 =
+* Changed hook for cleaning up attachments to only check on form submissions
+
 = 0.38 =
 * Added support for attachments
 
