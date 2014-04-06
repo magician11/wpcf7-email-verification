@@ -82,6 +82,7 @@ function init_wpcf7ev_settings() {
     // add the fields that can be modified
     add_settings_field('wpcf7ev_from_name', "Sender's name", 'wpcf7ev_from_name_callback', 'wpcf7ev_email_settings', 'wpcf7ev_customising_emails_section');
     add_settings_field('wpcf7ev_from_email', "Sender's email address", 'wpcf7ev_from_email_callback', 'wpcf7ev_email_settings', 'wpcf7ev_customising_emails_section');
+    add_settings_field('wpcf7ev_verification_message', "Verification message", 'wpcf7ev_verification_message_callback', 'wpcf7ev_email_settings', 'wpcf7ev_customising_emails_section');
 
     register_setting('wpcf7ev_email_settings', 'wpcf7ev_email_settings');
 }
@@ -102,7 +103,14 @@ function wpcf7ev_from_name_callback() {
 function wpcf7ev_from_email_callback() {
 
     $options = get_option('wpcf7ev_email_settings');
-    echo "<input id='wpcf7ev_from_email' name='wpcf7ev_email_settings[wpcf7ev_from_email]' type='email' value='" . $options['wpcf7ev_from_email'] . "'/>";
+    echo "<input id='wpcf7ev_from_email' name='wpcf7ev_email_settings[wpcf7ev_from_email]' size='40' type='email' value='" . $options['wpcf7ev_from_email'] . "'/>";
+}
+
+// render the verification from_name field
+function wpcf7ev_verification_message_callback() {
+
+    $options = get_option('wpcf7ev_email_settings');
+    echo "<textarea id='wpcf7ev_verification_message' name='wpcf7ev_email_settings[wpcf7ev_verification_message]' rows='5' cols='40'>" . $options['wpcf7ev_verification_message'] . "</textarea>";
 }
 
 // end setup of settings page in WordPress Dashboard
@@ -132,22 +140,23 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
 
     // check for a custom entered from name or email address
     add_filter( 'wp_mail_from', function($email_address){
-        
+
         $options = get_option('wpcf7ev_email_settings');
         return $options['wpcf7ev_from_email'];
     });
 
     add_filter( 'wp_mail_from_name', function($from_name){
-        
+
         $options = get_option('wpcf7ev_email_settings');
         return $options['wpcf7ev_from_name'];
     });
 
     // send email to the sender with a verification link to click on
-    wp_mail($senders_email_address , 'Verify your email address',
+    $options = get_option('wpcf7ev_email_settings');
+    wp_mail($senders_email_address , 'Please verify your email address',
             "Hi,\n\nThanks for your your recent submission on " . get_option('blogname') .
             ".\n\nIn order for your submission to be processed, please verify this is your email address by clicking on the following link:\n\n" . 
-            get_site_url() . "/wp-admin/admin-post.php?action=wpcf7ev&email-verification-key={$random_hash}" . "\n\nThanks.");
+            get_site_url() . "/wp-admin/admin-post.php?action=wpcf7ev&email-verification-key={$random_hash}\n\n" . $options['wpcf7ev_verification_message']);
 
     // prevent the form being sent as per usual
     $wpcf7_form->skip_mail = true;
