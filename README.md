@@ -17,7 +17,7 @@ This "Contact Form 7 email verification" plugin extends the "Contact Form 7" plu
 After this plugin is activated, on a form submission..
 
 1. The form submission does not get sent but instead saved temporarily (including attachments).
-2. The sender gets sent an email address with a link to click to confirm their email address.
+2. The sender gets sent an email with a link to click on to confirm their email address.
 3. Once the link is clicked, the user gets sent back to the website with the form on, and
 4. the previously submitted form gets sent as per usual for CF7 functionality.
 
