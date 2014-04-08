@@ -27,7 +27,8 @@ For those interested, you can check out the code on GitHub [here](https://github
 
 There are things to still be done..
 
-1. Create a settings page to customise messages
+1. Allow verification to be set per form
+2. Custom from email and name fields per form
 
 == Installation ==
 
