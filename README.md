@@ -3,7 +3,7 @@ Contributors: magician11, bcworkz
 Donate link: http://golightlyplus.com/code/
 Tags: email, 
 Requires at least: 3.6.1
-Tested up to: 3.8.1
+Tested up to: 3.8.2
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -51,6 +51,9 @@ Awesome! As above, just [get in touch](http://golightlyplus.com/contact-andrew/ 
 Nothing to show here.
 
 == Changelog ==
+
+= 0.47 =
+* changed verification email from name to site title and email to admin_email
 
 = 0.44 =
 * Changed hook for cleaning up attachments to only check on form submissions

@@ -55,6 +55,17 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
     // save submitted form as a transient object
     wpcf7ev_save_form_submission($wpcf7_form, $random_hash);
 
+    add_filter( 'wp_mail_from', function($email_address){
+
+        return get_option('admin_email');
+    });
+
+    add_filter( 'wp_mail_from_name', function($from_name){
+
+        return get_option('blogname ');
+    });
+    
+    
     // send email to the sender with a verification link to click on
     wp_mail($senders_email_address , 'Verify your email address',
             "Hi,\n\nThanks for your your recent submission on " . get_option('blogname') .
