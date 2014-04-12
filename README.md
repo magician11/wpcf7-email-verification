@@ -1,6 +1,6 @@
 === Contact Form 7 email verification ===
 Contributors: magician11, bcworkz
-Donate link: http://golightlyplus.com/code/
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=M778N8R9C2KNW
 Tags: email, 
 Requires at least: 3.6.1
 Tested up to: 3.8.2
@@ -40,11 +40,11 @@ There are no settings in the current stable version to change.
 
 = This is great, but it would be even better if it ... =
 
-I would love to hear how you would like to improve it. Let me know [here](http://golightlyplus.com/contact-andrew/ "Contact Andrew").
+I would love to hear how you would like to improve it. Let me know [here](http://golightlyplus.com/contact "Contact Andrew").
 
 = I've found a bug with it. Who can I tell? =
 
-Awesome! As above, just [get in touch](http://golightlyplus.com/contact-andrew/ "Contact Andrew"). Or submit a message on the Support forum.
+Awesome! As above, just [get in touch](http://golightlyplus.com/contact "Contact Andrew"). Or submit a message on the Support forum.
 
 == Screenshots ==
 
