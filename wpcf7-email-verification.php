@@ -25,12 +25,41 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 /**
  * Globals
  */
 
 define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files/');
 define('WPCF7EV_STORAGE_TIME', 16 * HOUR_IN_SECONDS);
+
+/**
+ * Add edit options to each CF7 form
+ */
+
+add_action('wpcf7_add_meta_boxes', 'wpcf7ev_add_form_options');
+
+function wpcf7ev_add_form_options() {
+    
+    wp_mail('support@andrewgolightly.com', 'debug', 'adding meta box');
+    add_meta_box('wpcf7ev_form_options', 'Email Verification', 'wpcf7ev_display_options', 'wpcf7_contact_form');
+
+}
+
+function wpcf7ev_display_options() {
+
+    wp_mail('support@andrewgolightly.com', 'debug', 'adding checkbox');
+    
+    //$wpcf7ev_options = get_option('wpcf7ev_options');
+    $wpcf7ev_options['active'] = 1;
+?>
+
+<input type="checkbox" id="wpcf7ev-active" name="wpcf7ev-[active]" value="1"<?php echo ( $wpcf7ev_options['active']==1 ) ? ' checked="checked"' : ''; ?> />
+<label for="wpcf7ev-active">Use email verification</label>
+<?php
+
+}
+
 
 /**
  * Intercept Contact Form 7 forms being sent by first verifying the senders email address.
@@ -64,8 +93,8 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
 
         return get_option('blogname ');
     });
-    
-    
+
+
     // send email to the sender with a verification link to click on
     wp_mail($senders_email_address , 'Verify your email address',
             "Hi,\n\nThanks for your your recent submission on " . get_option('blogname') .
@@ -183,7 +212,7 @@ function wpcf7ev_check_verifier() {
 add_action( 'wpcf7_mail_sent', 'wpcf7ev_cleanup_attachments' );
 
 function wpcf7ev_cleanup_attachments() {
-    
+
     if ( $handle = @opendir( WPCF7EV_UPLOADS_DIR ) ) {
 
         while ( ( $file = readdir( $handle ) ) !== false ) {
