@@ -34,28 +34,38 @@ define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files/');
 define('WPCF7EV_STORAGE_TIME', 16 * HOUR_IN_SECONDS);
 
 /**
+* Initialise this plugin
+*/
+
+add_action('wpcf7_init', 'wpcf7ev_init');
+
+function wpcf7ev_init() {
+
+    $wpcf7ev_options = array (
+        'enabled' => 1
+    );
+
+    add_option('wpcf7ev_options', $wpcf7ev_options);
+}
+
+
+/**
  * Add edit options to each CF7 form
  */
 
 add_action('wpcf7_add_meta_boxes', 'wpcf7ev_add_form_options');
 
 function wpcf7ev_add_form_options() {
-    
-    wp_mail('support@andrewgolightly.com', 'debug', 'adding meta box');
-    add_meta_box('wpcf7ev_form_options', 'Email Verification', 'wpcf7ev_display_options', 'wpcf7_contact_form');
 
+    add_meta_box('wpcf7ev_form_options', 'Email Verification', 'wpcf7ev_display_options', null, 'mail', 'core');
 }
 
 function wpcf7ev_display_options() {
 
-    wp_mail('support@andrewgolightly.com', 'debug', 'adding checkbox');
-    
-    //$wpcf7ev_options = get_option('wpcf7ev_options');
-    $wpcf7ev_options['active'] = 1;
+    $wpcf7ev_options = get_option('wpcf7ev_options');
 ?>
 
-<input type="checkbox" id="wpcf7ev-active" name="wpcf7ev-[active]" value="1"<?php echo ( $wpcf7ev_options['active']==1 ) ? ' checked="checked"' : ''; ?> />
-<label for="wpcf7ev-active">Use email verification</label>
+<label><input type="checkbox" name="wpcf7ev_options[enabled]" value="1" <?php checked( $wpcf7ev_options['enabled']); ?>>Use email verification</label>
 <?php
 
 }
