@@ -53,23 +53,43 @@ function wpcf7ev_init() {
  * Add edit options to each CF7 form
  */
 
+// ===========================================================================
+
+// using WPCF7 hook to add a meta box on the editing page for a form
 add_action('wpcf7_add_meta_boxes', 'wpcf7ev_add_form_options');
 
-function wpcf7ev_add_form_options() {
+function wpcf7ev_add_form_options($wpcf7_post_id) {
 
     add_meta_box('wpcf7ev_form_options', 'Email Verification', 'wpcf7ev_display_options', null, 'mail', 'core');
+
+    //wp_mail('andrewgolightly11@gmail.com', 'debug', "adding metabox to post with ID of {$wpcf7_post_id}");
+
 }
 
-function wpcf7ev_display_options() {
+//callback to draw the wpcf7ev options on the edit options for a form
+function wpcf7ev_display_options($post) {
 
     $wpcf7ev_options = get_option('wpcf7ev_options');
+    wp_mail('andrewgolightly11@gmail.com', 'debug', print_r($post,true));
 ?>
 
 <label><input type="checkbox" name="wpcf7ev_options[enabled]" value="1" <?php checked( $wpcf7ev_options['enabled']); ?>>Use email verification</label>
 <?php
+    
+    //wp_mail('andrewgolightly11@gmail.com', 'debug', "added metabox to post with ID of {$post->ID}");
 
 }
 
+//using wpcf7 hook to save wpcf7ev settings to the wpcf7 object
+add_action('wpcf7_after_save', 'wpcf7ev_save_settings');
+
+function wpcf7ev_save_settings(&$wpcf7_form) {
+
+    //wp_mail('andrewgolightly11@gmail.com', 'debug', print_r($wpcf7_form,true));
+
+}
+
+// ===========================================================================
 
 /**
  * Intercept Contact Form 7 forms being sent by first verifying the senders email address.
