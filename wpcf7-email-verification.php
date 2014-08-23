@@ -36,17 +36,29 @@ define('WPCF7EV_STORAGE_TIME', 16 * HOUR_IN_SECONDS);
  * Intercept Contact Form 7 forms being sent by first verifying the senders email address.
  */
 
+// first prevent the emails being sent as per usual
+add_filter('wpcf7_mail_components', 'wpcf7ev_skip_sending');
+
+function wpcf7ev_skip_sending($components) {
+    
+    $components['send'] = false;
+    
+    return $components;
+}
+
+// then request the email address to be verified and save the submission as a transient
 add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
 
-function wpcf7ev_verify_email_address( &$wpcf7_form )
+function wpcf7ev_verify_email_address( $wpcf7_form )
 {
-    // Grab the mail template (re-using the code from CF7)
-    $mail_template = $wpcf7_form->setup_mail_template( $wpcf7_form->mail, 'mail' );
-    // get the sender's email address
-    $senders_email_address = $wpcf7_form->replace_mail_tags( $mail_template['sender'] );
+    $mail_tags = $wpcf7_form->prop('mail');
+    $mail_fields = wpcf7_mail_replace_tags( $mail_tags );
+    $senders_email_address = $mail_fields['sender'];
+    
     // send an email to the recipient to let them know verification is pending
-    wp_mail($wpcf7_form->replace_mail_tags( $mail_template['recipient'] ), 'Form notice',
-            "Hi,\n\nYou've had a form submission on " . get_option('blogname') . " from " . $senders_email_address .
+    wp_mail($mail_fields['recipient'], 'Form notice',
+            "Hi,\n\nYou've had a form submission on " . get_option('blogname') . " from " .
+            $senders_email_address .
             ".\n\nWe are waiting for them to confirm their email address.");
 
     //create hash code for verification key
@@ -62,18 +74,15 @@ function wpcf7ev_verify_email_address( &$wpcf7_form )
 
     add_filter( 'wp_mail_from_name', function($from_name){
 
-        return get_option('blogname ');
+        return get_option('blogname');
     });
-    
-    
+
+
     // send email to the sender with a verification link to click on
     wp_mail($senders_email_address , 'Verify your email address',
             "Hi,\n\nThanks for your your recent submission on " . get_option('blogname') .
             ".\n\nIn order for your submission to be processed, please verify this is your email address by clicking on the following link:\n\n" . 
             get_site_url() . "/wp-admin/admin-post.php?action=wpcf7ev&email-verification-key={$random_hash}" . "\n\nThanks.");
-
-    // prevent the form being sent as per usual
-    $wpcf7_form->skip_mail = true;
 }
 
 /**
@@ -160,9 +169,10 @@ function wpcf7ev_check_verifier() {
             {
                 // remove the action that triggers this plugin's code
                 remove_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
+                remove_filter( 'wpcf7_mail_components', 'wpcf7ev_skip_sending' ); // allow mail to be sent as per usual
                 $cf7 = $storedValue[0]; // get the saved CF7 object
-                $cf7->skip_mail = false; // allow mail to be sent as per usual
-                $cf7->mail(); // send mail using the CF7 core code
+                wp_mail('support@andrewgolightly.com', 'saved object', print_r($cf7, true));
+                WPCF7_Mail::send( $cf7->prop( 'mail' ), 'mail' ); // send mail using the CF7 core code
                 // display a confirmation message then redirect back to the homepage after 8 seconds
                 echo('<h2>Thank you. Verification key accepted.</h2>' . 
                      '<p>Your form submission will now be processed.</p>' . 
@@ -183,7 +193,7 @@ function wpcf7ev_check_verifier() {
 add_action( 'wpcf7_mail_sent', 'wpcf7ev_cleanup_attachments' );
 
 function wpcf7ev_cleanup_attachments() {
-    
+
     if ( $handle = @opendir( WPCF7EV_UPLOADS_DIR ) ) {
 
         while ( ( $file = readdir( $handle ) ) !== false ) {
