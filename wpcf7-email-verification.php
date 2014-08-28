@@ -67,8 +67,17 @@ function wpcf7ev_verify_email_address( $wpcf7_form )
     $mail_fields = wpcf7_mail_replace_tags( $mail_tags );
     $senders_email_address = $mail_fields['sender'];
 
-    wp_mail('support@andrewgolightly.com', 'mail fields', print_r($mail_fields, true));
-    //wp_die("testing");
+    // save any attachments to a temp directory
+    $mail_string = $mail_fields['attachments'];
+    if($mail_string != ' ') {
+        $mail_attachments = explode(" ", $mail_string);
+        foreach($mail_attachments as $attachment) {
+
+            $uploaded_file_path = ABSPATH . 'wp-content/uploads/wpcf7_uploads/' . $attachment;
+            $new_filepath = WPCF7EV_UPLOADS_DIR . $attachment;
+            rename($uploaded_file_path, $new_filepath);
+        }
+    }
 
     // send an email to the recipient to let them know verification is pending
     wp_mail($mail_fields['recipient'], 'Form notice',
@@ -98,43 +107,6 @@ function wpcf7ev_cleanup() {
     remove_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
     remove_filter( 'wpcf7_mail_components', 'wpcf7ev_skip_sending' ); // allow mail to be sent as per usual
 }
-
-/**
- * Save the Contact Form 7 object as transient data.
- * The saved object is automatically serialized.
- */
-/*
-function wpcf7ev_save_form_submission($cf7_object, $random_hash) {
-
-    // make a copy of the cf7 object so that it keeps a reference to the original filepaths
-    $cf7ev_object = clone $cf7_object;
-
-    // if there are attachemnts, save them
-    if(!empty($cf7ev_object->uploaded_files)) {
-
-        //if the wpcf7ev directory does not exist, create it
-        if (!is_dir(WPCF7EV_UPLOADS_DIR)) {
-            mkdir(WPCF7EV_UPLOADS_DIR, 0733, true);
-        }
-
-        // move the attachments to wpcf7ev temp folder
-        $updated_filepaths = array();
-        foreach ($cf7ev_object->uploaded_files as $key => $uploaded_file_path) {
-            // make sure the file name is unique in the directory it's being saved to
-            $new_filepath = WPCF7EV_UPLOADS_DIR . wp_unique_filename( WPCF7EV_UPLOADS_DIR, basename($uploaded_file_path) );
-            rename($uploaded_file_path, $new_filepath);
-            $updated_filepaths[$key] = $new_filepath;
-        }
-
-        // update the cloned cf7 object with the new filepaths of the attachments
-        $cf7ev_object->uploaded_files = $updated_filepaths;
-    }
-
-    $data_to_save = array($cf7ev_object, $random_hash);
-
-    set_transient( wpcf7ev_get_slug($random_hash), $data_to_save , WPCF7EV_STORAGE_TIME );
-}
-*/
 
 /**
  * Create the slug key for the transient CF7 object
@@ -185,8 +157,13 @@ function wpcf7ev_check_verifier() {
             else
             {
                 $cf7_mail_fields = $storedValue[0]; // get the saved CF7 object
-                wp_mail('support@andrewgolightly.com', 'retrieved object', print_r($cf7_mail_fields, true));
-                wp_mail($cf7_mail_fields['recipient'], $cf7_mail_fields['subject'], $cf7_mail_fields['body']);
+                // create an array of the temp location of any attachments
+                $mail_string = $cf7_mail_fields['attachments'];
+                $mail_attachments = ($mail_string == ' ') ? ' ' : array_map(function($attachment) {
+                    return WPCF7EV_UPLOADS_DIR . $attachment;
+                }, explode(" ", $mail_string));
+                // send out the email as per usual
+                wp_mail($cf7_mail_fields['recipient'], $cf7_mail_fields['subject'], $cf7_mail_fields['body'],'', $mail_attachments);
 
                 // display a confirmation message then redirect back to the homepage after 8 seconds
                 echo('<h2 style="text-align:center;">Thank you. Verification key accepted.</h2>' . 
@@ -205,7 +182,7 @@ function wpcf7ev_check_verifier() {
  */
 
 // this hook gets called everytime a form submission is made (verified or not)
-/*
+
 add_action( 'wpcf7_mail_sent', 'wpcf7ev_cleanup_attachments' );
 
 function wpcf7ev_cleanup_attachments() {
@@ -227,5 +204,5 @@ function wpcf7ev_cleanup_attachments() {
         closedir( $handle );
     }
 }
-*/
+
 ?>
