@@ -4,7 +4,7 @@
  * Plugin Name: Contact Form 7 email verification
  * Plugin URI: http://golightlyplus.com/code/#contact-form-7-email-verification
  * Description: Extends Contact Form 7 to allow for email addresses to be verified via a link sent to the sender's email address. There is currently no settings page for this plugin.
- * Version: 0.44
+ * Version: 0.55
  * Author: Andrew Golightly
  * Author URI: http://www.golightlyplus.com
  * License: GPL2
@@ -59,20 +59,19 @@ add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
 
 function wpcf7ev_verify_email_address( $wpcf7_form )
 {
-
     // first prevent the emails being sent as per usual
     add_filter('wpcf7_mail_components', 'wpcf7ev_skip_sending');
 
+    // fetch the submitted form details   
     $mail_tags = $wpcf7_form->prop('mail');
     $mail_fields = wpcf7_mail_replace_tags( $mail_tags );
     $senders_email_address = $mail_fields['sender'];
 
     // save any attachments to a temp directory
-    $mail_string = $mail_fields['attachments'];
-    if($mail_string != ' ') {
+    $mail_string = trim($mail_fields['attachments']);
+    if(strlen($mail_string) > 0 and !ctype_space($mail_string)) {
         $mail_attachments = explode(" ", $mail_string);
         foreach($mail_attachments as $attachment) {
-
             $uploaded_file_path = ABSPATH . 'wp-content/uploads/wpcf7_uploads/' . $attachment;
             $new_filepath = WPCF7EV_UPLOADS_DIR . $attachment;
             rename($uploaded_file_path, $new_filepath);
@@ -158,10 +157,10 @@ function wpcf7ev_check_verifier() {
             {
                 $cf7_mail_fields = $storedValue[0]; // get the saved CF7 object
                 // create an array of the temp location of any attachments
-                $mail_string = $cf7_mail_fields['attachments'];
-                $mail_attachments = ($mail_string == ' ') ? ' ' : array_map(function($attachment) {
+                $mail_string = trim($cf7_mail_fields['attachments']);
+                $mail_attachments = (strlen($mail_string) > 0 and !ctype_space($mail_string)) ? array_map(function($attachment) {
                     return WPCF7EV_UPLOADS_DIR . $attachment;
-                }, explode(" ", $mail_string));
+                }, explode(" ", $mail_string)) : ' ';
                 // send out the email as per usual
                 wp_mail($cf7_mail_fields['recipient'], $cf7_mail_fields['subject'], $cf7_mail_fields['body'],'', $mail_attachments);
 

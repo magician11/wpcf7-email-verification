@@ -3,7 +3,7 @@ Contributors: magician11, bcworkz
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=M778N8R9C2KNW
 Tags: email, 
 Requires at least: 3.6.1
-Tested up to: 3.8.2
+Tested up to: 3.9.2
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -51,6 +51,9 @@ Awesome! As above, just [get in touch](http://golightlyplus.com/contact "Contact
 Nothing to show here.
 
 == Changelog ==
+
+= 0.55 =
+* fixed plugin to work with latest version of CF7
 
 = 0.47 =
 * changed verification email from name to site title and email to admin_email
