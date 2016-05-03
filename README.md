@@ -1,3 +1,5 @@
+* NOTE: This plugin is no longer maintained. There have been a lot of changes to CF7 that have made it complicated to get this to integrate with it.
+
 === Contact Form 7 email verification ===
 Contributors: magician11, bcworkz
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=M778N8R9C2KNW
