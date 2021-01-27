@@ -1,11 +1,9 @@
-* NOTE: This plugin is no longer maintained. There have been a lot of changes to CF7 that have made it complicated to get this to integrate with it.
-
 === Contact Form 7 email verification ===
 Contributors: magician11, bcworkz
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=M778N8R9C2KNW
-Tags: email, 
-Requires at least: 3.6.1
-Tested up to: 3.9.2
+Tags: email,
+Requires at least: 5.6
+Tested up to: 5.6
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -23,7 +21,7 @@ After this plugin is activated, on a form submission..
 3. Once the link is clicked, the user gets sent back to the website with the form on, and
 4. the previously submitted form gets sent as per usual for CF7 functionality.
 
-For those interested, you can check out the code on GitHub [here](https://github.com/magician11/wpcf7-email-verification "WP CF7 email verification code on GitHub").
+For those interested, you can check out the code on GitHub [here](https://github.com/magician11/wpcf7-email-verification 'WP CF7 email verification code on GitHub').
 
 ==TODOs==
 
@@ -42,11 +40,11 @@ There are no settings in the current stable version to change.
 
 = This is great, but it would be even better if it ... =
 
-I would love to hear how you would like to improve it. Let me know [here](http://golightlyplus.com/contact "Contact Andrew").
+I would love to hear how you would like to improve it. Let me know [here](http://golightlyplus.com/contact 'Contact Andrew').
 
 = I've found a bug with it. Who can I tell? =
 
-Awesome! As above, just [get in touch](http://golightlyplus.com/contact "Contact Andrew"). Or submit a message on the Support forum.
+Awesome! As above, just [get in touch](http://golightlyplus.com/contact 'Contact Andrew'). Or submit a message on the Support forum.
 
 == Screenshots ==
 
@@ -54,21 +52,31 @@ Nothing to show here.
 
 == Changelog ==
 
+= 1.11 =
+
+- resurrected this plugin to work again :)
+
 = 0.55 =
-* fixed plugin to work with latest version of CF7
+
+- fixed plugin to work with latest version of CF7
 
 = 0.47 =
-* changed verification email from name to site title and email to admin_email
+
+- changed verification email from name to site title and email to admin_email
 
 = 0.44 =
-* Changed hook for cleaning up attachments to only check on form submissions
+
+- Changed hook for cleaning up attachments to only check on form submissions
 
 = 0.38 =
-* Added support for attachments
+
+- Added support for attachments
 
 = 0.22 =
-* Fixed bug on double calling the plugin
-* Info message displayed now on clicking the verification link
+
+- Fixed bug on double calling the plugin
+- Info message displayed now on clicking the verification link
 
 = 0.11 =
-* The first stable release.
+
+- The first stable release.

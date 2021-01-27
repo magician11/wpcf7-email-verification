@@ -4,13 +4,18 @@
  * Plugin Name: Contact Form 7 email verification
  * Plugin URI: http://golightlyplus.com/code/#contact-form-7-email-verification
  * Description: Extends Contact Form 7 to allow for email addresses to be verified via a link sent to the sender's email address. There is currently no settings page for this plugin.
- * Version: 0.55
+ * Version: 1.11
  * Author: Andrew Golightly
  * Author URI: http://www.golightlyplus.com
  * License: GPL2
  */
 
-/*  Copyright 2014  Andrew Golightly  (email : andrew@golightlyplus.com)
+ // https://wordpress.org/plugins/contact-form-7-email-verification/
+ // https://github.com/magician11/wpcf7-email-verification
+ // https://wordpress.org/plugins/contact-form-7/
+ // testing on https://dev.golightlyplus.com/wordpress/?p=1
+
+/*  Copyright 2021  Andrew Golightly  (email : support@andrewgolightly.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as 
@@ -65,7 +70,8 @@ function wpcf7ev_verify_email_address( $wpcf7_form )
     // fetch the submitted form details   
     $mail_tags = $wpcf7_form->prop('mail');
     $mail_fields = wpcf7_mail_replace_tags( $mail_tags );
-    $senders_email_address = $mail_fields['sender'];
+    $senders_email_address = substr($mail_fields['additional_headers'],10);
+    // wp_mail($mail_fields['recipient'], 'mail tags', print_r($mail_fields,true) . "\n" . $mail_fields['sender'] . " -- " . $mail_fields['additional_headers'] . "\n" . substr($mail_fields['additional_headers'],10));
 
     // save any attachments to a temp directory
     $mail_string = trim($mail_fields['attachments']);
