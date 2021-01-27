@@ -1,6 +1,6 @@
 === Contact Form 7 email verification ===
 Contributors: magician11, bcworkz
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=M778N8R9C2KNW
+Donate link: https://www.paypal.me/AndrewGolightly/
 Tags: email,
 Requires at least: 5.6
 Tested up to: 5.6
