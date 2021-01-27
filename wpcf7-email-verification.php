@@ -49,31 +49,21 @@ add_filter( 'wp_mail_from_name', function($from_name){
 }, 9);
 
 // then request the email address to be verified and save the submission as a transient
-add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address',10,2);
+add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address',10,3);
 
-add_filter( 'wpcf7_display_message', 
-function($message, $status) {
-    $submission = WPCF7_Submission::get_instance();
-    wp_mail($mail_fields['recipient'], 'Submission type',$submission);
-    if ( $submission->is( 'abort' ) ) {
-        $message = __( 'Please check your email to verify your email address.', '');
-    }
 
-    return $message;
-}
-, 10, 2 );
-
-function wpcf7ev_verify_email_address( $wpcf7_form, &$abort)
+function wpcf7ev_verify_email_address( $wpcf7_form, &$abort, $submission)
 {
     // first prevent the emails being sent as per usual
     $abort = true;
-
+    $submission->set_response( $wpcf7_form->filter_message(
+        __( "Please check your email to verify your email address.", 'contact-form-7' ) )
+    );
 
     // fetch the submitted form details   
     $mail_tags = $wpcf7_form->prop('mail');
     $mail_fields = wpcf7_mail_replace_tags( $mail_tags );
     $senders_email_address = substr($mail_fields['additional_headers'],10);
-    // wp_mail($mail_fields['recipient'], 'mail tags', print_r($mail_fields,true) . "\n" . $mail_fields['sender'] . " -- " . $mail_fields['additional_headers'] . "\n" . substr($mail_fields['additional_headers'],10));
 
     // save any attachments to a temp directory
     $mail_string = trim($mail_fields['attachments']);
