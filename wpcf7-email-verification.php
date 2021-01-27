@@ -37,17 +37,6 @@
 define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files/');
 define('WPCF7EV_STORAGE_TIME', 16 * HOUR_IN_SECONDS);
 
-/**
- * Intercept Contact Form 7 forms being sent by first verifying the senders email address.
- */
-
-function wpcf7ev_skip_sending($components) {
-
-    $components['send'] = false;
-
-    return $components;
-}
-
 // prettify the email addresses being sent
 add_filter( 'wp_mail_from', function($email_address){
 
@@ -60,12 +49,25 @@ add_filter( 'wp_mail_from_name', function($from_name){
 }, 9);
 
 // then request the email address to be verified and save the submission as a transient
-add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
+add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address',10,2);
 
-function wpcf7ev_verify_email_address( $wpcf7_form )
+add_filter( 'wpcf7_display_message', 
+function($message, $status) {
+    $submission = WPCF7_Submission::get_instance();
+    wp_mail($mail_fields['recipient'], 'Submission type',$submission);
+    if ( $submission->is( 'abort' ) ) {
+        $message = __( 'Please check your email to verify your email address.', '');
+    }
+
+    return $message;
+}
+, 10, 2 );
+
+function wpcf7ev_verify_email_address( $wpcf7_form, &$abort)
 {
     // first prevent the emails being sent as per usual
-    add_filter('wpcf7_mail_components', 'wpcf7ev_skip_sending');
+    $abort = true;
+
 
     // fetch the submitted form details   
     $mail_tags = $wpcf7_form->prop('mail');
@@ -110,7 +112,6 @@ add_action('wpcf7_mail_failed', 'wpcf7ev_cleanup');
 function wpcf7ev_cleanup() {
     // remove the action that triggers this plugin's code
     remove_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
-    remove_filter( 'wpcf7_mail_components', 'wpcf7ev_skip_sending' ); // allow mail to be sent as per usual
 }
 
 /**
