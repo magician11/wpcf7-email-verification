@@ -4,13 +4,13 @@
  * Plugin Name: Contact Form 7 email verification
  * Plugin URI: http://golightlyplus.com/code/#contact-form-7-email-verification
  * Description: Extends Contact Form 7 to allow for email addresses to be verified via a link sent to the sender's email address. There is currently no settings page for this plugin.
- * Version: 1.11
+ * Version: 0.55
  * Author: Andrew Golightly
  * Author URI: http://www.golightlyplus.com
  * License: GPL2
  */
 
-/*  Copyright 2021  Andrew Golightly  (email : support@andrewgolightly.com)
+/*  Copyright 2014  Andrew Golightly  (email : andrew@golightlyplus.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as 
@@ -32,6 +32,17 @@
 define('WPCF7EV_UPLOADS_DIR', ABSPATH . 'wp-content/uploads/wpcf7ev_files/');
 define('WPCF7EV_STORAGE_TIME', 16 * HOUR_IN_SECONDS);
 
+/**
+ * Intercept Contact Form 7 forms being sent by first verifying the senders email address.
+ */
+
+function wpcf7ev_skip_sending($components) {
+
+    $components['send'] = false;
+
+    return $components;
+}
+
 // prettify the email addresses being sent
 add_filter( 'wp_mail_from', function($email_address){
 
@@ -44,21 +55,17 @@ add_filter( 'wp_mail_from_name', function($from_name){
 }, 9);
 
 // then request the email address to be verified and save the submission as a transient
-add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address',10,3);
+add_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
 
-
-function wpcf7ev_verify_email_address( $wpcf7_form, &$abort, $submission)
+function wpcf7ev_verify_email_address( $wpcf7_form )
 {
     // first prevent the emails being sent as per usual
-    $abort = true;
-    $submission->set_response( $wpcf7_form->filter_message(
-        __( "Please check your email to verify your email address.", 'contact-form-7' ) )
-    );
+    add_filter('wpcf7_mail_components', 'wpcf7ev_skip_sending');
 
     // fetch the submitted form details   
     $mail_tags = $wpcf7_form->prop('mail');
     $mail_fields = wpcf7_mail_replace_tags( $mail_tags );
-    $senders_email_address = substr($mail_fields['additional_headers'],10);
+    $senders_email_address = $mail_fields['sender'];
 
     // save any attachments to a temp directory
     $mail_string = trim($mail_fields['attachments']);
@@ -97,6 +104,7 @@ add_action('wpcf7_mail_failed', 'wpcf7ev_cleanup');
 function wpcf7ev_cleanup() {
     // remove the action that triggers this plugin's code
     remove_action( 'wpcf7_before_send_mail', 'wpcf7ev_verify_email_address' );
+    remove_filter( 'wpcf7_mail_components', 'wpcf7ev_skip_sending' ); // allow mail to be sent as per usual
 }
 
 /**
